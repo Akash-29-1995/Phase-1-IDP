@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: idp
+      POSTGRES_PASSWORD: idp
+      POSTGRES_DB: idp
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U idp -d idp"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://idp:idp@postgres:5432/idp
+      JWT_SECRET: change-me-for-real-deployments
+      CORS_ORIGINS: http://localhost:5173,http://localhost:8080
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin123
+      DEV_USERNAME: developer
+      DEV_PASSWORD: dev123
+      # Preferred multi-env catalogs (safe for UI). Bootsrap/url stay server-side only.
+      KAFKA_CLUSTERS_BY_ENV_JSON: '{"prod":[{"id":"msk-prod","display_name":"MSK Production","bootstrap":"kafka.prod.local:9092"}],"nonprod":[{"id":"msk-nonprod","display_name":"MSK NonProd","bootstrap":"kafka.nonprod.local:9092"}]}'
+      REDIS_CLUSTERS_BY_ENV_JSON: '{"prod":[{"id":"elasticache-prod","display_name":"Redis Prod","url":"redis://elasticache-prod.local:6379/0"}],"nonprod":[{"id":"elasticache-dev","display_name":"Redis Dev","url":"redis://elasticache-dev.local:6379/0"}]}'
+      # Legacy flat maps (optional fallback)
+      REDIS_URL_BY_CLUSTER: '{}'
+      KAFKA_BOOTSTRAP_BY_CLUSTER: '{}'
+      AWS_REGION: ap-south-1
+      # Where OIDC callback redirects the browser after login (must match your SPA origin).
+      FRONTEND_URL: http://localhost:8080
+      # Optional SSO: set issuer, client, secret, redirect URI registered at IdP, and comma-separated email domains.
+      # OIDC_ISSUER: https://login.microsoftonline.com/<tenant>/v2.0
+      # OIDC_CLIENT_ID: your-app-id
+      # OIDC_CLIENT_SECRET: your-secret
+      # OIDC_REDIRECT_URI: http://localhost:8000/api/v1/auth/oidc/callback
+      # ALLOWED_SSO_EMAIL_DOMAINS: example.com,example.org
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
