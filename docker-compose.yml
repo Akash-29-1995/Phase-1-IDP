@@ -44,6 +44,8 @@ services:
       # OIDC_CLIENT_SECRET: your-secret
       # OIDC_REDIRECT_URI: http://localhost:8000/api/v1/auth/oidc/callback
       # ALLOWED_SSO_EMAIL_DOMAINS: example.com,example.org
+      # SESSION_SECRET: long-random-secret-separate-from-jwt
+      # SESSION_HTTPS_ONLY: true
     depends_on:
       postgres:
         condition: service_healthy

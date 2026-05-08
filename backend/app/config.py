@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg2://idp:idp@localhost:5432/idp"
     jwt_secret: str = "change-me"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 480
+    access_token_expire_minutes: int = 60
 
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
 
@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     oidc_redirect_uri: str = "http://127.0.0.1:8000/api/v1/auth/oidc/callback"
     frontend_url: str = "http://127.0.0.1:5173"
     allowed_sso_email_domains: str = ""
+
+    # Session cookie settings for OIDC state/nonce tracking.
+    session_secret: str | None = None
+    session_https_only: bool = False
 
     topic_name_pattern: str = r"^[a-zA-Z0-9._-]+$"
     topic_max_partitions: int = 64

@@ -1,20 +1,22 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-/** Backend redirects here with ?access_token= after OIDC; persist token and hard-reload for a clean session. */
+/** Backend redirects here with #access_token after OIDC; persist token and hard-reload for a clean session. */
 export function OAuthCallbackPage() {
-  const [params] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const t = params.get("access_token");
-    if (!t) {
+    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+    const token = new URLSearchParams(hash).get("access_token");
+    if (!token) {
       navigate("/login", { replace: true });
       return;
     }
-    localStorage.setItem("idp_token", t);
+    localStorage.setItem("idp_token", token);
+    // Clear token-bearing fragment from browser history address bar.
+    window.history.replaceState(null, "", "/oauth/callback");
     window.location.replace("/");
-  }, [params, navigate]);
+  }, [navigate]);
 
   return (
     <div className="login__center">

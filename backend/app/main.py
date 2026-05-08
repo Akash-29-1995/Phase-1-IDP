@@ -15,12 +15,15 @@ def create_app() -> FastAPI:
     settings = get_settings()
     application = FastAPI(title="Relay Platform API", version="0.1.0")
 
-    application.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret, same_site="lax", https_only=False)
+    session_secret = settings.session_secret or settings.jwt_secret
+    application.add_middleware(SessionMiddleware, secret_key=session_secret, same_site="lax", https_only=settings.session_https_only)
 
     origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
+    if not origins:
+        raise RuntimeError("CORS_ORIGINS must be explicitly configured for this deployment")
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=origins if origins else ["*"],
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

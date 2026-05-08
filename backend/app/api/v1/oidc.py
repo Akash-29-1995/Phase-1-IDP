@@ -148,4 +148,5 @@ async def oidc_callback(
     request.session.pop("oidc_nonce", None)
 
     base = settings.frontend_url.rstrip("/")
-    return RedirectResponse(f"{base}/oauth/callback?access_token={token}", status_code=status.HTTP_302_FOUND)
+    # Put token in URL fragment so it is not sent in HTTP logs/referrers to the server.
+    return RedirectResponse(f"{base}/oauth/callback#access_token={token}", status_code=status.HTTP_302_FOUND)
