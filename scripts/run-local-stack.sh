@@ -51,7 +51,7 @@ FE_PID=$!
 
 sleep 2
 if command -v open >/dev/null 2>&1; then
-  open "http://127.0.0.1:5173"
+  open "http://127.0.0.1:5173" || true
 fi
 
 echo ""

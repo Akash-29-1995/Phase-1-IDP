@@ -12,3 +12,4 @@ kafka-python==2.0.2
 boto3==1.35.76
 httpx==0.27.2
 PyJWT==2.10.1
+itsdangerous==2.2.0
